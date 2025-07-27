@@ -1,3 +1,23 @@
-node_modules/.env
-node_modules
+# 🔑 Secrets & creds
 .env
+secret.env
+*.pem
+*.key
+*.crt
+
+# ⚙️ Ansible runtime leftovers
+ansible/*.retry
+
+# 📦 Dependency & build artefacts
+node_modules/
+dist/
+*.log
+
+# 🐳 Docker build cache
+*.tar
+*.tgz
+
+# 🗑️ Editor/OS noise
+.DS_Store
+.idea/
+.vscode/
