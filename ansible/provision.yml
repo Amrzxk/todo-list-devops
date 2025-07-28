@@ -1,6 +1,6 @@
 ---
 - name: Provision Docker host
-  hosts: todo-vm
+  hosts: todo_vm
   become: true
   tasks:
     - name: Update apt cache
