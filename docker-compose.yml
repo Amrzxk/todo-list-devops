@@ -1,0 +1,28 @@
+services:
+ web:
+  image: docker.io/amrzxk/todo-list:latest
+  container_name: todo-web
+  restart: unless-stopped
+  ports:
+    - "4000:4000"
+  env_file:
+    - .env
+  healthcheck:
+    test: ["CMD-SHELL", "wget -qO- http://localhost:4000/ || exit 1"]
+    interval: 20s
+    timeout: 5s
+    retries: 2
+    start_period: 10s
+
+ watchtower:
+   image: containrrr/watchtower:latest
+   container_name: watchtower
+   restart: unless-stopped
+   volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+   # poll every 60s, only monitor web container
+   command: --interval 60 todo-web
+   environment:
+     # dockerhub creds, private pulls
+     - WATCHTOWER_USERNAME=amrzxk
+     - WATCHTOWER_PASSWORD=dckr_pat_ITE_ARS6n05X06_TROGwfJPMlR4
