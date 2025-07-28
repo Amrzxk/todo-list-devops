@@ -1,109 +1,124 @@
+# 📝 Todo‑List (Node + DevOps)
 
-## Documentation
+A production‑ready version of the classic Todo application.
+Beyond the Node/Express code you now get:
 
-[Documentation](https://linktodocumentation)
+* **Multi‑stage Docker image** (non‑root, Alpine, built via CI)
+* **GitHub Actions pipeline** – build, cache & push to a private Docker Hub repo
+* **Ansible provisioning** – brings up Docker Engine + Compose on an Ubuntu EC2 free‑tier VM
+* **Docker Compose deployment** – health‑checked service + **Watchtower** for automatic image updates
 
-📝 To-Do List nodeJs
+---
 
-The to-do list application is a web-based application that allows users to create and manage a list of tasks. The user interface consists of a form to add new tasks, a list of all tasks, and controls to mark tasks as complete or delete them.
+## 📑 Table of Contents
 
-To create the application, Node.js is used to set up the server and handle the logic of the application. Express.js is used to create the routes for the application, allowing the user to interact with the application through a web browser. EJS is used to create the views for the application, allowing the user to see the list of tasks and the form to add new tasks. CSS is used to style the application, making it visually appealing and easy to use.
+1. [Architecture](#architecture)
+2. [Quick Start (Local)](#quick-start-local)
+3. [CI / CD Pipeline](#ci--cd-pipeline)
+4. [Infrastructure as Code (Ansible)](#infrastructure-as-code-ansible)
+5. [Runtime (Stack on EC2)](#runtime-stack-on-ec2)
+6. [Demo Video](#demo-video)
+7. [Contributing & Authors](#contributing--authors)
 
-MongoDB and Mongoose are used to store the tasks in a database, allowing the user to add, delete, and update tasks as needed. Nodemon is used to monitor changes to the code and automatically restart the server, making it easy to develop and test the application.
+---
 
-When the user adds a new task using the form, Node.js and Express.js handle the request and store the task in the database using Mongoose. When the user views the list of tasks, EJS displays the tasks from the database in a list on the web page. When the user marks a task as complete or deletes a task, Node.js and Express.js handle the request and update the database using Mongoose.
+## Architecture
 
-Overall, the todo list application using Node.js, Express.js, EJS, CSS, JavaScript, MongoDB, Mongoose, and Nodemon can be a great way to create a functional and interactive web application that allows users to manage their tasks online. With the right combination of technologies, it is possible to create an application that is both functional and aesthetically pleasing, making it easy for users to manage their tasks in a convenient and efficient way.
-
-Technologies Used: NodeJS, ExpressJS, EJS, CSS, JavaScript, Nodemon, MongoDB, Mongoose.
-## Demo
-
-Under process...
-## Authors
-
-- [@AnkitVishwakarma](https://github.com/Ankit6098)
-
-
-## Features
-
-- Create, Update, and Delete Tasks: Enable users to create new tasks, update existing tasks (e.g., mark as completed, edit task details), and delete tasks they no longer need.
-- Task Categories provides Implement the ability for users to categorize their tasks into different categories (e.g., work, personal, shopping) or assign labels/tags to tasks for better organization and filtering.
-- MongoDb to store your the user data
-## Run Locally
-
-Clone the project
-
-```bash
-  git clone https://github.com/Ankit6098/Todos-nodejs
+```
+Developer ↔ GitHub ➜ GitHub Actions ──▶ Docker Hub (private)
+                                     ▲
+                                     │  pull
+Ubuntu 22.04 EC2  ◄── Ansible ▶ Docker Engine + Compose + Watchtower ──▶ pulls latest tag
 ```
 
-Go to the project directory and open index.html file
+* **Part 1** – container image is built & pushed by GitHub Actions.
+* **Part 2** – Ansible playbook installs Docker/Compose on the VM.
+* **Part 3** – Compose runs the app (`todo-web`) + `watchtower` which polls Docker Hub every 60 s and hot‑restarts when a new digest is available.
+
+---
+
+## Quick Start (Local)
 
 ```bash
-  cd Todos-nodejs
+# 1  Clone
+$ git clone https://github.com/Amrzzk/todo-list-devops.git
+$ cd todo-list-devops
+
+# 2  Install deps & run
+$ npm ci
+$ npm start            # http://localhost:4000/
 ```
 
-Install the packages
+---
+
+## CI / CD Pipeline
+
+File: `.github/workflows/ci.yml`
+
+* **Trigger** – every push to `main`.
+* **BuildX** – layer‑cached BuildKit build.
+* **Secrets** – `DOCKERHUB_USERNAME / DOCKERHUB_TOKEN` for private push.
+* **Tag** – `docker.io/<user>/todo-list:latest`.
+
+> The workflow meets **PDF Part 1**: *“create a CI pipeline that builds the image and pushes it to a private docker registry.”*
+
+---
+
+## Infrastructure as Code (Ansible)
+
+* **Inventory** – `inventory.ini` lists the EC2 under `[todo_vm]` with its SSH key.
+* **Playbook** – `provision.yml` performs: apt update → prereqs → Docker GPG key & repo → Docker Engine + Compose v2 → adds `ubuntu` to `docker` group.
+
+Run from your **local WSL**:
 
 ```bash
-  npm install / npm i
+ansible -i inventory.ini todo_vm -m ping          # expect pong
+ansible-playbook -i inventory.ini provision.yml   # idempotent
 ```
 
-Start the Server
+Meets **PDF Part 2**.
+
+---
+
+## Runtime (Stack on EC2)
+
+File: `docker-compose.yml`
+
+### Services
+
+| Service      | Purpose     | Highlights                                                       |
+| ------------ | ----------- | ---------------------------------------------------------------- |
+| `todo-web`   | Main API    | Health‑check via `wget`, non‑root UID, mapped `4000:4000`        |
+| `watchtower` | Auto‑update | Polls every 60 s for newer `latest` tag and redeploys `todo-web` |
+
+### Deploy / Update
 
 ```bash
-    npm start / nodemon start
+# on the VM
+cd ~/todo-list-devops
+cp .env.example .env          # fill in Mongo URI + Docker Hub creds
+
+docker compose up -d          # first run
+
+docker compose ps             # todo-web -> healthy
 ```
-## Acknowledgements
 
- - [nodemon](https://nodemon.io/)
- - [mongoDb](https://www.mongodb.com/)
- - [mongoose](https://mongoosejs.com/)
+Push a new tag and watch **watchtower** pull & restart within a minute.
 
+---
 
-## Screenshots
+## Demo Video (<3 min)
 
-![225232515-4c100b6b-52e4-40f8-a6d4-85e30dc2f5e7](https://github.com/Ankit6098/Todos-nodejs/assets/92246613/487f548f-7ca6-4183-9443-c88c9f79c3f0)
-![225232960-da554f1f-ba4a-41f8-9856-edaebe339d76](https://github.com/Ankit6098/Todos-nodejs/assets/92246613/25515d2e-1d72-498d-8044-59a01c6b9127)
-![225238829-05433362-5b16-454c-92d5-5e536fe6912e](https://github.com/Ankit6098/Todos-nodejs/assets/92246613/316d15ca-1fe8-4581-80b1-fc316340bba6)
-![225239140-226f8eae-d8b8-4055-8a68-d85d523c2422](https://github.com/Ankit6098/Todos-nodejs/assets/92246613/44a0c418-449e-446f-8a8e-3c4e14fca8bf)
-![225239221-caf86f3d-ef17-4d18-80a6-c72123ff5444](https://github.com/Ankit6098/Todos-nodejs/assets/92246613/2ee90ab0-95d4-44f4-80ac-b17b088ac1ce)
-![225239406-98b7ba7d-df97-4d27-bb66-596a32187d87](https://github.com/Ankit6098/Todos-nodejs/assets/92246613/960ff353-1ce9-4ef8-94e4-10af09184fd2)
-![225239841-4b5d77f0-4a54-4339-b6b3-b6a1be6776b5](https://github.com/Ankit6098/Todos-nodejs/assets/92246613/f5ffc3b8-480f-4d11-9a0b-c469e3c17e8e)
+1. Ansible provision recap.
+2. Compose up + health‑check.
+3. Browse `http://<EC2_IP>:4000`.
+4. Push new image tag, watch live restart.
 
+---
 
-## Related
+## Contributing & Authors
 
-Here are some other projects
+*Original Node app* – [@Ankit6098](https://github.com/Ankit6098)
+*DevOps extension* – **Amrzzk**
 
-[Alarm CLock - javascript](https://github.com/Ankit6098/Todos-nodejs)\
-[IMDb Clone - javascript](https://github.com/Ankit6098/IMDb-Clone)
-
-
-## 🚀 About Me
-I'm a full stack developer...
-
-
-# Hi, I'm Ankit! 👋
-
-I'm a full stack developer 😎 ... Love to Develop Classic Unique fascinating and Eye Catching UI and Love to Create Projects and Building logics.
-## 🔗 Links
-[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ankithub.me/Resume/)
-
-[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColorwhite=)](https://www.linkedin.com/in/ankit-vishwakarma-6531221b0/)
-
-
-## Other Common Github Profile Sections
-🧠 I'm currently learning FullStack Developer Course from Coding Ninjas
-
-📫 How to reach me ankitvis609@gmail.com
-
-
-## 🛠 Skills
-React, Java, Javascript, HTML, CSS, Nodejs, ExpressJs, Mongodb, Mongoose...
-
-
-## Feedback
-
-If you have any feedback, please reach out to us at ankitvis609@gmail.com
-
+PRs & issues welcome!
