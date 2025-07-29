@@ -100,15 +100,6 @@ Push a new tag and watch **watchtower** pull & restart within a minute.
 
 ---
 
-## Demo Video (<3 min)
-
-1. Ansible provision recap.
-2. Compose up + health‑check.
-3. Browse `http://<EC2_IP>:4000`.
-4. Push new image tag, watch live restart.
-
----
-
 ## Contributing & Authors
 
 *Original Node app* – [@Ankit6098](https://github.com/Ankit6098)
