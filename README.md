@@ -53,7 +53,6 @@ File: `.github/workflows/ci.yml`
 * **Secrets** – `DOCKERHUB_USERNAME / DOCKERHUB_TOKEN` for private push.
 * **Tag** – `docker.io/<user>/todo-list:latest`.
 
-> The workflow meets **PDF Part 1**: *“create a CI pipeline that builds the image and pushes it to a private docker registry.”*
 
 ---
 
@@ -68,8 +67,6 @@ Run from your **local WSL**:
 ansible -i inventory.ini todo_vm -m ping          # expect pong
 ansible-playbook -i inventory.ini provision.yml   # idempotent
 ```
-
-Meets **PDF Part 2**.
 
 ---
 
