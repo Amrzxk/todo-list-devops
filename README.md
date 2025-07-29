@@ -81,6 +81,8 @@ File: `docker-compose.yml`
 | `todo-web`   | Main API    | Health‑check via `wget`, non‑root UID, mapped `4000:4000`        |
 | `watchtower` | Auto‑update | Polls every 60 s for newer `latest` tag and redeploys `todo-web` |
 
+I chose Watchtower because it's reliable, lightweight, requires zero custom code, and gracefully handles restarts without downtime or manual intervention, satisfying the requirement for automated image updates.
+
 ### Deploy / Update
 
 ```bash
