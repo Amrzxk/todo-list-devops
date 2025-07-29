@@ -23,14 +23,8 @@ Beyond the Node/Express code you now get:
 ---
 
 ## Architecture
-
+<img width="621" height="372" alt="Workflow" src="https://github.com/user-attachments/assets/12ec9fa5-8556-44f2-999e-ddaf0ccc8bd4" />
 ```
-Developer ↔ GitHub ➜ GitHub Actions ──▶ Docker Hub (private)
-                                     ▲
-                                     │  pull
-Ubuntu 22.04 EC2  ◄── Ansible ▶ Docker Engine + Compose + Watchtower ──▶ pulls latest tag
-```
-
 * **Part 1** – container image is built & pushed by GitHub Actions.
 * **Part 2** – Ansible playbook installs Docker/Compose on the VM.
 * **Part 3** – Compose runs the app (`todo-web`) + `watchtower` which polls Docker Hub every 60 s and hot‑restarts when a new digest is available.
